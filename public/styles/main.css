@@ -1,0 +1,52 @@
+:root {
+  /* Cyan Gopher Abstraction Design Tokens */
+  --bg-void: #070709;
+  --bg-surface: #111116;
+  --text-primary: #F2F2F2;
+  --text-secondary: #A0A0A5;
+  --go-cyan: #00ADD8;
+  --go-cyan-glow: rgba(0, 173, 216, 0.15);
+  --danger-red: #E03E52;
+}
+
+/* Elite CSS Reset & Base */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--bg-void);
+  color: var(--text-primary);
+}
+
+body {
+  min-height: 100vh;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+
+img, picture, svg, video {
+  display: block;
+  max-width: 100%;
+}
+
+input, button, textarea, select {
+  font: inherit;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

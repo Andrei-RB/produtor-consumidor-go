@@ -1,0 +1,7 @@
+Seminário: 14/10/2026 · Tema: C1 — Produtor-consumidor · Paradigma:
+Concorrente · Linguagem: Go · Ambiente: go.dev/play
+Detalhamento do tema: implementar o clássico problema produtor-consumidor
+usando goroutines (unidades de execução leves) e channels (comunicação entre elas),
+em vez de threads e locks explícitos. O foco é o modelo de concorrência de Go —
+"compartilhar memória comunicando", em vez de "comunicar compartilhando
+memória" — comparado a threads/mutex em C/Java.

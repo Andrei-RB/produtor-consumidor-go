@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Filosofia de Concorrência em Go: O Modelo CSP</title>
+    
+    <!-- Fonts Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- CSS Architecture -->
+    <link rel="stylesheet" href="./styles/main.css">
+    <link rel="stylesheet" href="./styles/typography.css">
+    <link rel="stylesheet" href="./styles/layout.css" defer>
+    <link rel="stylesheet" href="./styles/animations.css" defer>
+</head>
+<body>
+    <main id="app-container">
+        <section id="hero-abertura" class="min-h-screen flex flex-col justify-center section-padding">
+            <div class="reading-container">
+                <h1 class="hero-title">A Filosofia de Concorrência em Go</h1>
+                <span class="hero-subtitle">Do Modelo CSP aos Internos do Tempo de Execução</span>
+                <p class="lead-paragraph" style="margin-top: 2rem;">
+                    Durante décadas, a engenharia de software baseou-se num modelo de execução estritamente sequencial. Com a inexorabilidade do limite físico delineado pelo fim prático da Lei de Moore, a programação concorrente deixou de ser uma mera otimização para se tornar o pilar central no desenho de sistemas de alta performance.
+                </p>
+            </div>
+        </section>
+        
+        <section id="problema-classico" class="section-padding">
+            <div class="main-container concept-grid">
+                <article class="flex flex-col justify-center">
+                    <h2 class="editorial-header" style="margin-bottom: 1rem;">O Problema Clássico do Buffer Limitado</h2>
+                    <p class="text-muted" style="margin-bottom: 1rem;">
+                        No paradigma Produtor-Consumidor, atores independentes compartilham um repositório de dados de capacidade finita (N).
+                    </p>
+                    <p class="text-muted" style="margin-bottom: 1rem;">
+                        O <strong>Produtor</strong> gera dados e os insere no buffer. O <strong>Consumidor</strong> os remove e os processa.
+                    </p>
+                    <p class="text-muted">
+                        <strong>O Desafio Crítico:</strong> A sincronização. Produtor e consumidor operam em velocidades distintas. O produtor deve entrar em estado de espera quando o buffer atinge sua capacidade máxima. Inversamente, o consumidor deve aguardar passivamente quando o buffer se encontra vazio.
+                    </p>
+                </article>
+                <div class="flex items-center justify-center">
+                    <div id="buffer-vis-placeholder" class="vis-container"><span class="vis-label">Simulação de Buffer (Standby)</span></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="modelo-tradicional-c-java" class="section-padding">
+            <div class="reading-container">
+                <h2 class="editorial-header" style="margin-bottom: 2rem;">A Ilusão da Memória Compartilhada</h2>
+                <p class="text-muted" style="margin-bottom: 2rem;">
+                    Na abordagem imperativa clássica (C++, Java), múltiplas threads operam concorrentemente sobre estruturas de dados globais no heap, exigindo primitivas de sincronização manuais como exclusões mútuas (mutexes), semáforos contadores (empty/full) e variáveis de condição.
+                </p>
+                
+                <div class="hazards-grid">
+                    <article class="hazard-card">
+                        <h3 class="hazard-title">Race Condition</h3>
+                        <p class="text-muted">
+                            (Condição de Corrida) O risco de comportamento não determinístico quando dois processos tentam alterar ponteiros ou contadores do buffer ao mesmo tempo, sem bloqueios adequados.
+                        </p>
+                    </article>
+                    <article class="hazard-card">
+                        <h3 class="hazard-title">Deadlock</h3>
+                        <p class="text-muted">
+                            (Impasse) Ocorre inanição e falhas de sinalização que deixam o produtor e consumidor eternamente adormecidos à espera um do outro em um ciclo indissolúvel.
+                        </p>
+                    </article>
+                </div>
+            </div>
+        </section>
+        <section id="transicao-csp" class="section-padding">
+            <div class="main-container concept-grid">
+                <article class="flex flex-col justify-center">
+                    <h2 class="editorial-header" style="margin-bottom: 2rem;">A Ruptura Arquitetônica: O Modelo CSP</h2>
+                    <p class="lead-paragraph" style="margin-bottom: 2rem;">
+                        A gênese da concorrência em Go remonta a 1978, fundamentada na álgebra de processos descrita por C.A.R. Hoare em "Communicating Sequential Processes". Nesta abordagem teórica elegante, a fragilidade sistêmica da partilha de memória é banida em favor de processos sequenciais e independentes que interagem através de canais de comunicação explícitos.
+                    </p>
+                    <blockquote class="pike-quote">
+                        "Não comunique compartilhando memória; em vez disso, compartilhe memória comunicando."
+                    </blockquote>
+                </article>
+                <div class="flex items-center justify-center">
+                    <div id="csp-vis-placeholder" class="vis-container"><span class="vis-label">Topologia CSP (Standby)</span></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="arquitetura-go" class="section-padding">
+            <div class="main-container">
+                <h2 class="editorial-header" style="margin-bottom: 4rem; text-align: center;">A Anatomia da Concorrência em Go</h2>
+                
+                <div class="bento-grid">
+                    <article class="bento-card bento-span-8">
+                        <h3 class="font-mono text-cyan" style="margin-bottom: 1rem; font-size: 1.25rem;">Goroutines & M:P:G Scheduler</h3>
+                        <p class="text-muted">
+                            Enquanto OS Threads convencionais exigem pesadas alocações de 1 a 2 MB com onerosas trocas de contexto ao nível do kernel, as <strong>Goroutines</strong> nascem com míseros 2 KB e são gerenciadas no espaço de usuário. O <em>runtime</em> de Go orquestra o modelo M:P:G, onde múltiplas Goroutines (G) são multiplexadas sobre processadores lógicos (P) que rodam sobre OS Threads (M), utilizando robustos algoritmos de <em>Work-Stealing</em> para garantir total saturação da CPU.
+                        </p>
+                    </article>
+                    
+                    <article class="bento-card bento-span-4">
+                        <h3 class="font-mono text-cyan" style="margin-bottom: 1rem; font-size: 1.25rem;">A Estrutura hchan</h3>
+                        <p class="text-muted">
+                            Instanciado no heap (`make(chan int, N)`), o canal opera internamente como uma fila FIFO circular (ring buffer). O fluxo de dados utiliza cursores <code>sendx</code> e <code>recvx</code> para enfileiramento, movimentando valores sem realocação agressiva de memória no kernel.
+                        </p>
+                    </article>
+                    
+                    <article class="bento-card bento-span-12">
+                        <h3 class="font-mono text-cyan" style="margin-bottom: 1rem; font-size: 1.25rem;">Semântica de Bloqueio Automático</h3>
+                        <p class="text-muted">
+                            Para mitigar travamentos, o runtime envelopa goroutines bloqueadas em uma estrutura chamada <code>sudog</code>. Em seguida, invoca <code>gopark</code> para suspender a execução de forma leve, devolvendo a OS Thread. Ao liberar espaço no canal, a instrução <code>goready</code> desperta a goroutine adormecida atomaticamente, eliminando as temidas travas manuais.
+                        </p>
+                    </article>
+                </div>
+            </div>
+        </section>
+        <section id="visualizacao-concorrencia" class="section-padding">
+            <div class="main-container">
+                <h2 class="editorial-header" style="margin-bottom: 2rem;">A Coreografia do Código</h2>
+                
+                <div class="code-laboratory">
+                    <div class="language-tabs" role="tablist">
+                        <button class="tab-btn active" role="tab" aria-selected="true" data-target="code-go">Go (CSP)</button>
+                        <button class="tab-btn" role="tab" aria-selected="false" data-target="code-c">C (Mutex/Semáforos)</button>
+                        <button class="tab-btn" role="tab" aria-selected="false" data-target="code-java">Java (Synchronized)</button>
+                    </div>
+                    
+                    <div class="syntax-card active" id="code-go" role="tabpanel">
+<pre><code><span class="kw">package</span> main
+
+<span class="kw">import</span> (
+    <span class="str">"fmt"</span>
+    <span class="str">"sync"</span>
+    <span class="str">"time"</span>
+)
+
+<span class="kw">func</span> producer(ch <span class="kw">chan</span>&lt;- <span class="kw">int</span>, wg *sync.WaitGroup) {
+    <span class="kw">defer</span> wg.Done()
+    <span class="kw">for</span> i := <span class="num">1</span>; i &lt;= <span class="num">5</span>; i++ {
+        fmt.Println(<span class="str">"Produzindo:"</span>, i)
+        ch &lt;- i <span class="comment">// Bloqueia automaticamente se cheio</span>
+        time.Sleep(time.Millisecond * <span class="num">500</span>)
+    }
+    close(ch)
+}
+
+<span class="kw">func</span> consumer(ch &lt;-<span class="kw">chan</span> <span class="kw">int</span>, wg *sync.WaitGroup) {
+    <span class="kw">defer</span> wg.Done()
+    <span class="kw">for</span> item := <span class="kw">range</span> ch { <span class="comment">// Aguarda dados passivamente</span>
+        fmt.Println(<span class="str">"Consumindo:"</span>, item)
+        time.Sleep(time.Millisecond * <span class="num">800</span>)
+    }
+}
+
+<span class="kw">func</span> main() {
+    ch := make(<span class="kw">chan</span> <span class="kw">int</span>, <span class="num">2</span>) <span class="comment">// Buffer N=2</span>
+    <span class="kw">var</span> wg sync.WaitGroup
+    
+    wg.Add(<span class="num">2</span>)
+    <span class="kw">go</span> producer(ch, &amp;wg)
+    <span class="kw">go</span> consumer(ch, &amp;wg)
+    
+    wg.Wait() <span class="comment">// Finalização ordenada</span>
+}</code></pre>
+                        <div class="action-bar">
+                            <a href="https://go.dev/play/" target="_blank" rel="noopener noreferrer" class="btn-run" aria-label="Executar código no Go Playground oficial">Executar no Go Playground</a>
+                        </div>
+                    </div>
+                    
+                    <div class="syntax-card" id="code-c" role="tabpanel" hidden>
+<pre><code><span class="comment">// Complexidade Imperativa: Múltiplas Travas Manuais</span>
+pthread_mutex_t mutex;
+sem_t empty;
+sem_t full;
+
+<span class="kw">void</span>* producer(<span class="kw">void</span>* arg) {
+    <span class="kw">while</span>(<span class="num">1</span>) {
+        <span class="danger-kw">sem_wait</span>(&amp;empty);     <span class="comment">// Aguarda slot vazio</span>
+        <span class="danger-kw">pthread_mutex_lock</span>(&amp;mutex); <span class="comment">// Trava o buffer</span>
+        
+        <span class="comment">// Produz item...</span>
+        
+        <span class="danger-kw">pthread_mutex_unlock</span>(&amp;mutex);
+        <span class="danger-kw">sem_post</span>(&amp;full);      <span class="comment">// Sinaliza slot cheio</span>
+    }
+}</code></pre>
+                        <div class="action-bar">
+                            <a href="https://onecompiler.com/c" target="_blank" rel="noopener noreferrer" class="btn-run" aria-label="Executar código C no OneCompiler oficial">Executar no OneCompiler</a>
+                        </div>
+                    </div>
+
+                    <div class="syntax-card" id="code-java" role="tabpanel" hidden>
+<pre><code><span class="comment">// Verbose Monitor & Wait/Notify Pattern</span>
+<span class="kw">class</span> Buffer {
+    <span class="kw">public</span> <span class="danger-kw">synchronized</span> <span class="kw">void</span> produce(<span class="kw">int</span> item) <span class="kw">throws</span> InterruptedException {
+        <span class="kw">while</span> (isFull()) {
+            <span class="danger-kw">wait()</span>; <span class="comment">// Adormece thread, propício a deadlocks</span>
+        }
+        <span class="comment">// Insere item...</span>
+        <span class="danger-kw">notifyAll()</span>; <span class="comment">// Desperta consumidores</span>
+    }
+}</code></pre>
+                        <div class="action-bar">
+                            <a href="https://onecompiler.com/java" target="_blank" rel="noopener noreferrer" class="btn-run" aria-label="Executar código Java no OneCompiler oficial">Executar no OneCompiler</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="demonstracao-pratica" class="section-padding">
+            <div class="main-container">
+                <h2 class="editorial-header" style="margin-bottom: 2rem;">Análise Comparativa e Safety by Design</h2>
+                
+                <div class="comparison-grid">
+                    <article>
+                        <h3 class="font-editorial text-cyan" style="font-size: 1.5rem; margin-bottom: 1rem;">Complexidade e Legibilidade</h3>
+                        <p class="text-muted">
+                            A abordagem de memória compartilhada (C/Java) transfere o ônus cognitivo da sincronização para o engenheiro, exigindo a orquestração precisa de múltiplos blocos <code>synchronized</code>, <code>wait()</code> e <code>notify()</code>. O Go absorve esta complexidade estrutural nos canais (<code>hchan</code>). A sintaxe idiomática <code>ch &lt;- item</code> e <code>range ch</code> oculta elegantemente a máquina de estados, resultando em um código declarativo, limpo e à prova de falhas de sinalização esquecidas.
+                        </p>
+                    </article>
+                    <article>
+                        <h3 class="font-editorial text-cyan" style="font-size: 1.5rem; margin-bottom: 1rem;">Prevenção de Condições de Corrida</h3>
+                        <p class="text-muted">
+                            Ao invés de proteger passivamente uma área global de memória através de semáforos, os canais em Go implementam o conceito de "Safety by Design" (Segurança por Projeto). O acesso exclusivo aos dados em trânsito é garantido pela própria topologia da comunicação. Uma vez que o produtor despacha o valor, ele implicitamente cede a posse do dado ao canal, eliminando estruturalmente qualquer vetor para acesso simultâneo não seguro.
+                        </p>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- GSAP Core & ScrollTrigger via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <!-- Main Application Entry Point -->
+    <script type="module" src="./scripts/app.js"></script>
+</body>
+</html>
