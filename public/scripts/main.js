@@ -2,11 +2,13 @@
    GSAP e ScrollTrigger chegam como globais pelos scripts auto-hospedados. */
 
 import { iniciarProgresso, iniciarIndicadorDeAto } from "./motion/scroll.js";
-import { garantirVideoDeAbertura } from "./motion/hero.js";
+import { iniciarAbertura } from "./motion/hero.js";
+import { iniciarCenas } from "./motion/cenas.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
-garantirVideoDeAbertura();
+iniciarAbertura();
+iniciarCenas();
 iniciarProgresso();
 iniciarIndicadorDeAto();
 

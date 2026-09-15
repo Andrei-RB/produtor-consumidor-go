@@ -1,0 +1,63 @@
+/* ============================================================
+   CANAL — Camada de movimento
+   Os estados iniciais das animações são aplicados por JavaScript
+   (gsap.set), nunca aqui: se o script falhar, o conteúdo precisa
+   aparecer visível em vez de ficar preso em opacity 0.
+   ============================================================ */
+
+@property --regua {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
+@property --eixo {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
+@layer components {
+
+  /* Régua do ato: desenhada da esquerda para a direita na entrada */
+  .ato-abertura {
+    position: relative;
+    border-block-end: none;
+  }
+
+  .ato-abertura::after {
+    content: "";
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline: 0;
+    block-size: 2px;
+    background-color: var(--accent);
+    scale: var(--regua) 1;
+    transform-origin: left center;
+  }
+
+  .ato-abertura--falha::after { background-color: var(--state-fault); }
+  .ato-abertura--maquina::after { background-color: var(--state-blocked); }
+  .ato-abertura--prova::after { background-color: var(--bone-500); }
+
+  /* Trilho do eixo do argumento: cresce de cima para baixo */
+  .cena--eixo::before {
+    scale: 1 var(--eixo);
+    transform-origin: top center;
+  }
+
+  /* Palco grudento: a visualização permanece enquanto o texto passa.
+     Só faz sentido onde há duas colunas. */
+  @media (min-width: 64rem) {
+    .cena:where([data-tipo="fixada"], [data-tipo="interativa"]) .palco {
+      position: sticky;
+      inset-block-start: calc(3.5rem + var(--space-lg));
+    }
+  }
+
+  /* O vídeo de abertura é percorrido pela rolagem: avisa o compositor
+     para promovê-lo a uma camada própria e evitar repintura da cena. */
+  .cena-video {
+    will-change: transform;
+  }
+}
