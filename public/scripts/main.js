@@ -7,6 +7,8 @@ import { iniciarCenas } from "./motion/cenas.js";
 import { montarBuffer } from "./viz/buffer.js";
 import { montarCorrida } from "./viz/corrida.js";
 import { montarImpasse } from "./viz/impasse.js";
+import { montarCanal } from "./viz/canal.js";
+import { montarHchan } from "./viz/hchan.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -14,6 +16,8 @@ const VISUALIZACOES = {
   buffer: montarBuffer,
   corrida: montarCorrida,
   impasse: montarImpasse,
+  canal: montarCanal,
+  hchan: montarHchan,
 };
 
 document.querySelectorAll("[data-viz]").forEach((palco) => {

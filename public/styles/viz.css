@@ -442,3 +442,273 @@
     color: var(--state-fault);
   }
 }
+
+@layer components {
+
+  /* ==========================================================
+     V6 — Anatomia do hchan
+     ========================================================== */
+
+  .hchan,
+  .canal,
+  .topologia {
+    inline-size: 100%;
+    display: grid;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+  }
+
+  .hchan-campos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs);
+  }
+
+  .campo {
+    display: flex;
+    gap: var(--space-2xs);
+    padding: 0.2em 0.6em;
+    border: var(--hairline) solid var(--line);
+    background-color: var(--bg-sunken);
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+  }
+
+  .campo-nome { color: var(--fg-subtle); }
+  .campo-valor { color: var(--accent); font-weight: 500; }
+  .campo-valor[data-tom="fechado"] { color: var(--state-fault); }
+
+  .hchan-anel {
+    display: grid;
+    gap: var(--space-3xs);
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .slot {
+    display: grid;
+    gap: 2px;
+    justify-items: center;
+    padding: var(--space-2xs);
+    border: var(--hairline) solid var(--line-strong);
+    background-color: var(--bg-sunken);
+    transition: border-color var(--dur-ui) var(--ease-out-quart);
+  }
+
+  .slot[data-ocupado="true"] {
+    border-color: var(--accent);
+    background-color: var(--accent-deep);
+  }
+
+  .slot-indice,
+  .slot-marca {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.04em;
+    color: var(--fg-subtle);
+    min-block-size: 1em;
+  }
+
+  .slot-marca { color: var(--hold-300); }
+
+  .slot-valor {
+    font-family: var(--font-display);
+    font-size: var(--fs-h3);
+    font-weight: 300;
+    line-height: 1.1;
+    color: var(--fg-strong);
+  }
+
+  .hchan-filas,
+  .canal-mesa {
+    display: grid;
+    gap: var(--space-sm);
+  }
+
+  @container (min-width: 32rem) {
+    .hchan-filas { grid-template-columns: 1fr 1fr; }
+    .canal-mesa { grid-template-columns: 1fr auto 1fr; align-items: center; }
+  }
+
+  .fila,
+  .canal-lado {
+    display: grid;
+    gap: var(--space-3xs);
+    align-content: start;
+  }
+
+  .fila-nome {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+
+  .fila-nome i {
+    font-style: normal;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--fg-subtle);
+  }
+
+  .fila-itens,
+  .canal-parados {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3xs);
+    min-block-size: 2.2em;
+    align-content: start;
+  }
+
+  .sudog,
+  .parada {
+    padding: 0.2em 0.5em;
+    border: var(--hairline) solid var(--state-blocked);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--hold-300);
+  }
+
+  .fila-vazia {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--fg-subtle);
+  }
+
+  .hchan-log,
+  .canal-log {
+    margin: 0;
+    padding: var(--space-xs) var(--space-sm);
+    border-inline-start: 2px solid var(--line-strong);
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    line-height: var(--leading-normal);
+    color: var(--fg-muted);
+    min-block-size: 4.2em;
+  }
+
+  .hchan-log[data-caminho="direto"],
+  .canal-log[data-tom="encontro"] {
+    border-inline-start-color: var(--accent);
+    color: var(--accent-soft);
+  }
+
+  .hchan-log[data-caminho="bloqueio"],
+  .canal-log[data-tom="bloqueio"] {
+    border-inline-start-color: var(--state-blocked);
+    color: var(--hold-300);
+  }
+
+  .hchan-log[data-caminho="falha"] {
+    border-inline-start-color: var(--state-fault);
+    color: var(--fault-300);
+  }
+
+  .hchan-controles,
+  .canal-controles,
+  .canal-modo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs);
+  }
+
+  .hchan-controles .botao,
+  .canal-controles .botao { font-size: var(--fs-micro); padding-inline: var(--space-sm); }
+
+  .hchan-aviso {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    line-height: var(--leading-normal);
+    color: var(--fg-subtle);
+  }
+
+  .hchan-aviso code { color: var(--fg-muted); }
+
+  /* ==========================================================
+     V5 — Rendezvous e topologia
+     ========================================================== */
+
+  .alternativa--canal[aria-pressed="true"] {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .canal-tubo {
+    display: grid;
+    gap: var(--space-3xs);
+    justify-items: center;
+    padding: var(--space-sm);
+    border: var(--hairline) solid var(--line-strong);
+    background-color: var(--bg-sunken);
+    min-inline-size: 11rem;
+  }
+
+  .canal-celulas {
+    display: flex;
+    gap: var(--space-3xs);
+  }
+
+  .canal-celulas .celula {
+    inline-size: 2.6rem;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--ink-1000);
+  }
+
+  .canal-sembuffer {
+    max-inline-size: 16ch;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    line-height: var(--leading-normal);
+    color: var(--hold-300);
+    text-align: center;
+  }
+
+  .canal-cap {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: var(--tracking-wide);
+    color: var(--fg-subtle);
+  }
+
+  .topologia-svg {
+    inline-size: 100%;
+    max-block-size: 15rem;
+  }
+
+  .topo-nos circle {
+    fill: var(--bg-elevated);
+    stroke: var(--accent);
+    stroke-width: 1.5;
+  }
+
+  .topo-ligacoes line {
+    stroke-width: 1.5;
+    transition: opacity var(--dur-reveal) var(--ease-out-quart);
+  }
+
+  .topo-ligacoes--compartilhada line { stroke: var(--state-fault); }
+  .topo-ligacoes--csp line { stroke: var(--accent); }
+
+  .topo-memoria {
+    fill: var(--bg-elevated);
+    stroke: var(--state-fault);
+    stroke-width: 1.5;
+    transition: opacity var(--dur-reveal) var(--ease-out-quart);
+  }
+
+  .topo-rotulo-memoria {
+    fill: var(--fault-300);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    transition: opacity var(--dur-reveal) var(--ease-out-quart);
+  }
+
+  [data-estado="compartilhada"] .topo-ligacoes--csp { opacity: 0; }
+  [data-estado="csp"] .topo-ligacoes--compartilhada,
+  [data-estado="csp"] .topo-memoria,
+  [data-estado="csp"] .topo-rotulo-memoria { opacity: 0; }
+}
