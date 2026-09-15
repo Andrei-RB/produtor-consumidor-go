@@ -188,3 +188,257 @@
     accent-color: var(--accent);
   }
 }
+
+@layer components {
+
+  /* ==========================================================
+     V2 — Condição de corrida
+     ========================================================== */
+
+  .corrida,
+  .impasse {
+    inline-size: 100%;
+    display: grid;
+    gap: var(--space-md);
+    padding: var(--space-md);
+  }
+
+  .corrida-mesa {
+    display: grid;
+    gap: var(--space-sm);
+    align-items: center;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @container (min-width: 34rem) {
+    .corrida-mesa { grid-template-columns: 1fr auto 1fr; gap: var(--space-md); }
+  }
+
+  .corrida-thread,
+  .impasse-ator {
+    display: grid;
+    gap: var(--space-2xs);
+    justify-items: start;
+  }
+
+  .thread-nome {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    letter-spacing: var(--tracking-machine);
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+
+  .thread-codigo {
+    display: grid;
+    gap: 2px;
+    inline-size: 100%;
+  }
+
+  .linha {
+    padding: 0.35em 0.6em;
+    border-inline-start: 2px solid var(--line);
+    background-color: var(--bg-sunken);
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--fg-subtle);
+    transition:
+      color var(--dur-micro) var(--ease-out-quart),
+      border-color var(--dur-micro) var(--ease-out-quart),
+      background-color var(--dur-micro) var(--ease-out-quart);
+  }
+
+  .linha[data-estado="feita"] {
+    color: var(--fg-muted);
+    border-inline-start-color: var(--accent-deep);
+  }
+
+  .linha[data-estado="proxima"] {
+    color: var(--accent);
+    border-inline-start-color: var(--accent);
+    background-color: var(--bg-elevated);
+  }
+
+  .linha[data-estado="bloqueada"] {
+    color: var(--state-blocked);
+    border-inline-start-color: var(--state-blocked);
+    background-color: var(--bg-elevated);
+  }
+
+  .thread-reg {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--fg-subtle);
+  }
+
+  .thread-reg b {
+    font-weight: 500;
+    color: var(--fg-strong);
+  }
+
+  .corrida-memoria {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3xs);
+    padding: var(--space-sm) var(--space-md);
+    border: var(--hairline) solid var(--line-strong);
+    background-color: var(--bg-sunken);
+  }
+
+  .memoria-rotulo,
+  .memoria-nome {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--fg-subtle);
+    text-align: center;
+  }
+
+  .memoria-valor {
+    font-family: var(--font-display);
+    font-size: var(--fs-h1);
+    font-weight: 300;
+    line-height: 1;
+    color: var(--accent);
+  }
+
+  .corrida-veredito,
+  .impasse-estado {
+    margin: 0;
+    padding: var(--space-xs) var(--space-sm);
+    border-inline-start: 2px solid var(--line-strong);
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    line-height: var(--leading-normal);
+    color: var(--fg-muted);
+    min-block-size: 3.4em;
+  }
+
+  .corrida-veredito[data-tom="certo"] {
+    border-inline-start-color: var(--accent);
+    color: var(--accent-soft);
+  }
+
+  .corrida-veredito[data-tom="errado"],
+  .impasse-estado[data-tom="impasse"] {
+    border-inline-start-color: var(--state-fault);
+    color: var(--fault-300);
+  }
+
+  .impasse-estado[data-tom="espera"] {
+    border-inline-start-color: var(--state-blocked);
+    color: var(--hold-300);
+  }
+
+  .corrida-controles,
+  .impasse-controles,
+  .impasse-ordem {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs);
+    align-items: center;
+  }
+
+  .corrida-controles .botao,
+  .impasse-controles .botao {
+    font-size: var(--fs-micro);
+    padding-inline: var(--space-sm);
+  }
+
+  .botao:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .corrida-placar,
+  .impasse-passos {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--fg-subtle);
+  }
+
+  .impasse-passos b {
+    font-weight: 500;
+    color: var(--fg-strong);
+  }
+
+  /* ==========================================================
+     V3 — Impasse
+     ========================================================== */
+
+  .alternativa {
+    min-block-size: 44px;
+    padding-inline: var(--space-sm);
+    border: var(--hairline) solid var(--line-strong);
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    transition:
+      color var(--dur-ui) var(--ease-out-quart),
+      border-color var(--dur-ui) var(--ease-out-quart);
+  }
+
+  .alternativa[aria-pressed="true"] {
+    border-color: var(--state-fault);
+    color: var(--fault-300);
+  }
+
+  .impasse-mesa {
+    display: grid;
+    gap: var(--space-sm);
+    align-items: start;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @container (min-width: 40rem) {
+    .impasse-mesa { grid-template-columns: 1fr auto 1fr; gap: var(--space-md); }
+  }
+
+  .impasse-recursos {
+    display: grid;
+    gap: var(--space-3xs);
+    padding: var(--space-sm);
+    border: var(--hairline) solid var(--line-strong);
+    background-color: var(--bg-sunken);
+    min-inline-size: 11rem;
+  }
+
+  .recurso {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+  }
+
+  .recurso-nome { color: var(--fg-subtle); }
+  .recurso-valor { color: var(--fg-strong); }
+  .recurso-valor[data-tom="ocupado"] { color: var(--state-blocked); }
+
+  .impasse-estado code {
+    padding: 0.1em 0.3em;
+    border: var(--hairline) solid var(--line);
+    color: inherit;
+  }
+}
+
+@layer components {
+  .corrida-fato {
+    margin: 0;
+    padding-block-start: var(--space-xs);
+    border-block-start: var(--hairline) solid var(--line);
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    line-height: var(--leading-normal);
+    color: var(--fg-muted);
+  }
+
+  .corrida-fato b {
+    font-weight: 500;
+    color: var(--state-fault);
+  }
+}
