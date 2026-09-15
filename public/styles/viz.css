@@ -1,0 +1,190 @@
+/* ============================================================
+   CANAL — Visualizações
+   V1: produtor, buffer limitado e consumidor.
+   ============================================================ */
+
+@layer components {
+
+  .sim {
+    inline-size: 100%;
+    display: grid;
+    gap: var(--space-md);
+    padding: var(--space-md);
+  }
+
+  .sim-palco {
+    display: grid;
+    gap: var(--space-sm);
+    align-items: center;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @container (min-width: 34rem) {
+    .sim-palco {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: var(--space-md);
+    }
+  }
+
+  /* ---------- Atores ---------- */
+
+  .ator {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2xs);
+    text-align: center;
+  }
+
+  .ator-nome {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    letter-spacing: var(--tracking-machine);
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+
+  /* Anel de progresso: quanto falta para o item ficar pronto.
+     Em bloqueio, vira um disco âmbar cheio — a espera é total. */
+  .ator-anel {
+    inline-size: 3.25rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background:
+      conic-gradient(var(--accent) calc(var(--progresso, 0) * 360deg), transparent 0),
+      radial-gradient(closest-side, var(--bg-raised) 68%, transparent 70%);
+    border: var(--hairline) solid var(--line-strong);
+    transition: border-color var(--dur-ui) var(--ease-out-quart);
+  }
+
+  .ator-anel[data-fase="bloqueado"] {
+    background:
+      conic-gradient(var(--state-blocked) 360deg, transparent 0),
+      radial-gradient(closest-side, var(--bg-raised) 68%, transparent 70%);
+    border-color: var(--state-blocked);
+  }
+
+  .ator-estado {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--fg-subtle);
+    min-block-size: 2.4em;
+    max-inline-size: 12ch;
+  }
+
+  .ator-estado[data-fase="bloqueado"] {
+    color: var(--state-blocked);
+  }
+
+  /* ---------- Buffer ---------- */
+
+  .sim-meio {
+    display: grid;
+    gap: var(--space-2xs);
+    min-inline-size: 0;
+  }
+
+  .sim-meio .celulas {
+    gap: var(--space-3xs);
+  }
+
+  .sim-meio .celula {
+    min-inline-size: 0;
+    max-inline-size: 4.5rem;
+    transition:
+      background-color var(--dur-micro) var(--ease-out-quart),
+      border-color var(--dur-micro) var(--ease-out-quart);
+  }
+
+  .sim-leitura {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    letter-spacing: 0.04em;
+    color: var(--fg-subtle);
+    text-align: center;
+  }
+
+  /* ---------- Trilhas de sincronização ----------
+     É aqui que os dois motores se diferenciam: com travas manuais a
+     trilha tem quatro passos que o programador escreveu; com canal,
+     tem um. */
+
+  .trilha {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3xs);
+    justify-content: center;
+  }
+
+  .passo {
+    padding: 0.15em 0.5em;
+    border: var(--hairline) solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--fg-subtle);
+    white-space: nowrap;
+    transition:
+      color var(--dur-micro) var(--ease-out-quart),
+      border-color var(--dur-micro) var(--ease-out-quart);
+  }
+
+  .trilha[data-pulso] .passo {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* ---------- Custo por item ---------- */
+
+  .sim-custo {
+    margin: 0;
+    padding-block-start: var(--space-xs);
+    border-block-start: var(--hairline) solid var(--line);
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    letter-spacing: 0.04em;
+    color: var(--fg-muted);
+    text-align: center;
+  }
+
+  .sim-custo b {
+    font-size: 1.6em;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  /* ---------- Controles ---------- */
+
+  .sim-controles {
+    display: grid;
+    gap: var(--space-sm);
+    padding-block-start: var(--space-xs);
+    border-block-start: var(--hairline) solid var(--line);
+  }
+
+  @container (min-width: 34rem) {
+    .sim-controles { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .controle {
+    display: grid;
+    gap: var(--space-3xs);
+  }
+
+  .controle-nome {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    letter-spacing: 0.04em;
+    color: var(--fg-subtle);
+  }
+
+  .controle-nome b {
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  .controle input[type="range"] {
+    inline-size: 100%;
+    min-block-size: 24px;
+    accent-color: var(--accent);
+  }
+}

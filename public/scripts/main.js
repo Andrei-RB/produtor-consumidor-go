@@ -4,8 +4,11 @@
 import { iniciarProgresso, iniciarIndicadorDeAto } from "./motion/scroll.js";
 import { iniciarAbertura } from "./motion/hero.js";
 import { iniciarCenas } from "./motion/cenas.js";
+import { montarBuffer } from "./viz/buffer.js";
 
 gsap.registerPlugin(ScrollTrigger);
+
+document.querySelectorAll('[data-viz="buffer"]').forEach(montarBuffer);
 
 iniciarAbertura();
 iniciarCenas();
