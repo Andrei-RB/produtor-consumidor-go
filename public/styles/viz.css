@@ -1096,3 +1096,151 @@
     border: 0;
   }
 }
+
+@layer components {
+
+  /* ==========================================================
+     V7 + V8 — Escala goroutine×thread e escalonador GMP (cena 12)
+     ========================================================== */
+
+  .escalonador {
+    inline-size: 100%;
+    display: grid;
+    gap: var(--space-lg);
+    padding: var(--space-md);
+  }
+
+  .escala {
+    display: grid;
+    gap: var(--space-sm);
+  }
+
+  .escala-barra {
+    display: grid;
+    grid-template-columns: 9rem 1fr 5rem;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .escala-rotulo {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--fg-muted);
+  }
+
+  .escala-trilha {
+    block-size: 0.6rem;
+    background-color: var(--bg-sunken);
+    border: var(--hairline) solid var(--line);
+  }
+
+  .escala-preenchimento {
+    block-size: 100%;
+    /* Largura mínima de 2px: a proporção real da goroutine é quase zero
+       (2 KB contra 8 MB) — sem piso ela some da tela, e é exatamente
+       essa desproporção que a barra existe pra mostrar. */
+    inline-size: max(2px, calc(var(--proporcao) * 100%));
+    background-color: var(--accent);
+  }
+
+  .escala-valor {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    text-align: end;
+    color: var(--fg-strong);
+  }
+
+  .escala-nota {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    line-height: var(--leading-normal);
+    color: var(--fg-subtle);
+  }
+
+  .escala-nota code {
+    padding: 0.1em 0.3em;
+    background-color: var(--bg-raised);
+    border: var(--hairline) solid var(--line);
+    color: var(--accent-soft);
+  }
+
+  .gmp {
+    display: grid;
+    gap: var(--space-sm);
+    padding-block-start: var(--space-sm);
+    border-block-start: var(--hairline) solid var(--line);
+  }
+
+  .gmp-legenda {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    letter-spacing: var(--tracking-wide);
+    color: var(--fg-muted);
+  }
+
+  .gmp-processadores {
+    display: grid;
+    gap: var(--space-md);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @container (min-width: 34rem) {
+    .gmp-processadores { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  .gmp-p {
+    display: grid;
+    gap: var(--space-2xs);
+    padding: var(--space-sm);
+    background-color: var(--bg-sunken);
+    border: var(--hairline) solid var(--line-strong);
+  }
+
+  .gmp-rotulo {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    letter-spacing: var(--tracking-wide);
+    color: var(--accent-soft);
+  }
+
+  .gmp-fila {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3xs);
+    min-block-size: 1.6rem;
+  }
+
+  .gmp-g {
+    inline-size: 1.1rem;
+    block-size: 1.1rem;
+    border: var(--hairline) solid var(--line-strong);
+  }
+
+  .gmp-m {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    padding-block-start: var(--space-2xs);
+    border-block-start: var(--hairline) dashed var(--line);
+  }
+
+  .gmp-rotulo-m {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--fg-subtle);
+  }
+
+  .gmp-g--executando {
+    background-color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .gmp-nota {
+    margin: 0;
+    max-inline-size: var(--measure);
+    font-size: var(--fs-small);
+    color: var(--fg-muted);
+  }
+}

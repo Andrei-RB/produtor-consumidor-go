@@ -13,6 +13,7 @@ import { montarCompartilhada, montarPrimitivas } from "./viz/primitivas.js";
 import { montarCodigoTradicional, montarComparacao } from "./viz/codigo.js";
 import { montarCicloVida } from "./viz/ciclo-vida.js";
 import { montarDemonstracao } from "./viz/demonstracao.js";
+import { montarEscalonador } from "./viz/escalonador.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -28,6 +29,7 @@ const VISUALIZACOES = {
   comparacao: montarComparacao,
   "ciclo-vida": montarCicloVida,
   demonstracao: montarDemonstracao,
+  escalonador: montarEscalonador,
 };
 
 document.querySelectorAll("[data-viz]").forEach((palco) => {
