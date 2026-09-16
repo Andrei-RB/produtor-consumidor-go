@@ -784,12 +784,18 @@
     text-align: center;
   }
 
-  /* Terceiro tom de célula, ao lado de "cheia" (V1) e "corrompida" (V2):
-     tocada para leitura — só o contorno acende, sem preenchimento. Cheia
-     e corrompida marcam uma mudança de estado; lida marca uma passagem. */
+  /* Terceiro tom de célula, ao lado de "cheia" (V1, preenchimento sólido)
+     e "corrompida" (V2, preenchimento sólido em outro matiz): tocada para
+     leitura. Não varia só a intensidade do mesmo ciano — depender de
+     tom/opacidade para diferenciar dois estados falha para quem tem baixa
+     visão. O padrão listrado muda a forma, não só a cor. */
   .celula[data-estado="lida"] {
     border-color: var(--accent-soft);
-    background-color: oklch(0.820 0.095 220 / 0.16);
+    background-image: repeating-linear-gradient(
+      45deg,
+      var(--accent-soft) 0 2px,
+      transparent 2px 6px
+    );
   }
 
   .compartilhada-log {
