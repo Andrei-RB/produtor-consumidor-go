@@ -50,7 +50,10 @@ function reiniciar(s) {
   s.fechado = false;
   s.proximoValor = 1;
   s.passo = 0;
-  s.evento = null;
+  // Evento próprio, não null: sem isto o parágrafo do log mantinha o
+  // texto "...for range encerra sozinho" do ciclo anterior, contradizendo
+  // o buffer e o badge closed já reiniciados na tela.
+  s.evento = { tom: "", texto: "Um novo canal com buffer 3." };
   s.encerrado = false;
 }
 

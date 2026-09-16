@@ -1013,3 +1013,86 @@
     color: var(--fg-subtle);
   }
 }
+
+@layer components {
+
+  /* ==========================================================
+     Demonstração prática (cena 17)
+     ========================================================== */
+
+  .demo {
+    inline-size: 100%;
+    padding: var(--space-md);
+  }
+
+  .demo-abas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs);
+    margin-block-end: var(--space-md);
+  }
+
+  .demo-aba {
+    min-block-size: 44px;
+    padding-inline: var(--space-md);
+    border: var(--hairline) solid var(--line-strong);
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    transition:
+      color var(--dur-ui) var(--ease-out-quart),
+      border-color var(--dur-ui) var(--ease-out-quart);
+  }
+
+  .demo-aba[aria-selected="true"] {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* :not([hidden]) importa: display:grid do autor tem a mesma
+     especificidade do [hidden]{display:none} do navegador, e origem de
+     autor sempre vence — sem isto os três painéis empilhavam juntos,
+     visíveis ao mesmo tempo, independente da aba selecionada. */
+  .demo-painel:not([hidden]) {
+    display: grid;
+    gap: var(--space-sm);
+  }
+
+  .demo-codigo {
+    max-block-size: 22rem;
+    overflow-y: auto;
+  }
+
+  .demo-observar {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--fg-subtle);
+  }
+
+  .demo-observar code {
+    padding: 0.1em 0.3em;
+    background-color: var(--bg-raised);
+    border: var(--hairline) solid var(--line);
+    color: var(--accent-soft);
+  }
+
+  .demo-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs);
+  }
+
+  .demo-editor:not(:empty) {
+    margin-block-start: var(--space-2xs);
+    border: var(--hairline) solid var(--line);
+  }
+
+  .demo-iframe {
+    inline-size: 100%;
+    block-size: 32rem;
+    border: 0;
+  }
+}
