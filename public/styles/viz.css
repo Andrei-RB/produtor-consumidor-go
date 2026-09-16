@@ -814,3 +814,90 @@
     color: var(--fault-300);
   }
 }
+
+@layer components {
+
+  /* ==========================================================
+     Blocos de código com realce próprio (cena 09: C×Java;
+     V10 / cena 18: C×Java×Go)
+     ========================================================== */
+
+  .comparacao-livre {
+    inline-size: 100%;
+    padding: var(--space-md);
+  }
+
+  .comparacao-colunas {
+    display: grid;
+    gap: var(--space-lg);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @container (min-width: 34rem) {
+    .comparacao-colunas[data-colunas="2"] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @container (min-width: 46rem) {
+    .comparacao-colunas[data-colunas="3"] {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .comparacao-coluna {
+    display: grid;
+    gap: var(--space-2xs);
+    align-content: start;
+    transition: opacity var(--dur-ui) var(--ease-out-quart);
+  }
+
+  /* Spotlight: passar o mouse ou focar uma coluna esmaece as outras —
+     interação pequena, sem depender de clique, que ajuda a comparar
+     uma linguagem de cada vez em vez de ler as três ao mesmo tempo. */
+  .comparacao-colunas:hover .comparacao-coluna:not(:hover),
+  .comparacao-colunas:focus-within .comparacao-coluna:not(:focus-within) {
+    opacity: 0.45;
+  }
+
+  .comparacao-coluna:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 6px;
+  }
+
+  .comparacao-rotulo {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    letter-spacing: var(--tracking-machine);
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+
+  .comparacao-coluna .codigo {
+    font-size: 0.8rem;
+    line-height: var(--leading-relaxed);
+    /* Sem scroll horizontal escondido: a linha mais longa do C não cabe
+       numa coluna de três sem quebrar. */
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .comparacao-custo {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--fg-subtle);
+  }
+
+  .comparacao-custo b {
+    font-size: 1.4em;
+    font-weight: 500;
+    color: var(--fault-300);
+  }
+
+  /* Zero chamadas: o mesmo argumento visual do V1 (Ato III), agora em
+     número — sem texto declarando vencedor. */
+  .comparacao-custo[data-zero] b {
+    color: var(--accent);
+  }
+}
