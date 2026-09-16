@@ -63,6 +63,10 @@
     /* Sem guarda de prefers-reduced-motion: rolagem suave é obrigatória
        em toda a experiência, por decisão de produto. */
     scroll-behavior: smooth;
+    /* A barra superior é fixed — sem isto, todo salto de âncora (o link
+       "pular para o conteúdo" incluso) para com o alvo escondido atrás
+       dela. Cobre também o foco por teclado chegando perto do topo. */
+    scroll-padding-top: var(--altura-barra);
   }
 
   body {

@@ -48,7 +48,8 @@
     display: flex;
     align-items: center;
     gap: var(--space-md);
-    padding: var(--space-xs) var(--gutter);
+    block-size: var(--altura-barra);
+    padding-inline: var(--gutter);
     background-color: oklch(0.145 0.008 240 / 0.72);
     backdrop-filter: blur(12px);
     border-block-end: var(--hairline) solid var(--line);
@@ -346,6 +347,7 @@
     letter-spacing: var(--tracking-display);
     color: var(--fg-strong);
     text-wrap: balance;
+    overflow-wrap: normal;
     margin: 0;
   }
 

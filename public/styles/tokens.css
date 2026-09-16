@@ -99,6 +99,12 @@
     --gutter: clamp(1.25rem, 0.9rem + 1.75vw, 3rem);
     --hairline: 1px;
 
+    /* Altura fixa da barra superior — fonte única, usada também em
+       scroll-padding-top (base.css), pra nenhum salto de âncora (o
+       link "pular para o conteúdo" incluso) esconder o topo do alvo
+       atrás dela. */
+    --altura-barra: 3.75rem;
+
     /* Movimento — curvas com intenção:
        expo  = entradas cinematográficas (rápido, depois desacelera longo)
        quart = microinterações de UI
