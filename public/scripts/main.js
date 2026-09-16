@@ -11,6 +11,7 @@ import { montarCanal } from "./viz/canal.js";
 import { montarHchan } from "./viz/hchan.js";
 import { montarCompartilhada, montarPrimitivas } from "./viz/primitivas.js";
 import { montarCodigoTradicional, montarComparacao } from "./viz/codigo.js";
+import { montarCicloVida } from "./viz/ciclo-vida.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -24,6 +25,7 @@ const VISUALIZACOES = {
   primitivas: montarPrimitivas,
   "codigo-tradicional": montarCodigoTradicional,
   comparacao: montarComparacao,
+  "ciclo-vida": montarCicloVida,
 };
 
 document.querySelectorAll("[data-viz]").forEach((palco) => {
