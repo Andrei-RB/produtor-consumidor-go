@@ -13,9 +13,12 @@
    atores atravessam esses portões, sempre na ordem correta — a ordem que a
    cena 08 vai trocar para provocar o impasse.
 
-   As duas rodam sozinhas (autoplay), pausadas fora da tela. Sob
-   prefers-reduced-motion, a cena 05 nasce parada no quadro da colisão e a
-   cena 07 vira passo a passo manual, ver lib/prefers-motion.js. */
+   As duas rodam sozinhas (autoplay), pausadas fora da tela. A animação é
+   obrigatória em toda a experiência — prefersReducedMotion() sempre
+   retorna false, por decisão de produto (ver lib/prefers-motion.js) — mas
+   o código continua pronto para reverter isso num só lugar, se a decisão
+   mudar: os ramos abaixo que tratam reduced-motion continuam aqui, só
+   inativos. */
 
 import { prefersReducedMotion } from "../lib/prefers-motion.js";
 
