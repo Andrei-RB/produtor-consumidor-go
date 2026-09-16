@@ -9,6 +9,7 @@ import { montarCorrida } from "./viz/corrida.js";
 import { montarImpasse } from "./viz/impasse.js";
 import { montarCanal } from "./viz/canal.js";
 import { montarHchan } from "./viz/hchan.js";
+import { montarCompartilhada, montarPrimitivas } from "./viz/primitivas.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -18,6 +19,8 @@ const VISUALIZACOES = {
   impasse: montarImpasse,
   canal: montarCanal,
   hchan: montarHchan,
+  compartilhada: montarCompartilhada,
+  primitivas: montarPrimitivas,
 };
 
 document.querySelectorAll("[data-viz]").forEach((palco) => {
