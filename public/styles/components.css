@@ -22,6 +22,20 @@
     min-block-size: 30rem;
   }
 
+  /* A síntese final (cena 19) não é mais uma peça de laboratório numa
+     vitrine — é a imagem que fecha a apresentação. Sem moldura, sem
+     grade técnica, sem altura mínima de card: os números ficam soltos
+     na própria cena, não dentro de mais uma caixa. */
+  .palco--fechamento {
+    min-block-size: 0;
+    background-color: transparent;
+    border: none;
+  }
+
+  .palco--fechamento::before {
+    display: none;
+  }
+
   @media (min-width: 64rem) {
     .palco { min-block-size: 26rem; }
     .palco--alto { min-block-size: 34rem; }

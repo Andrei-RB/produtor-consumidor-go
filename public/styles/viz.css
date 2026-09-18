@@ -1243,4 +1243,60 @@
     font-size: var(--fs-small);
     color: var(--fg-muted);
   }
+
+  /* ---------- Síntese: fechamento da cena 19 ---------- */
+
+  .sintese-numeros {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-end;
+    column-gap: var(--space-2xl);
+    row-gap: var(--space-lg);
+    margin-block-start: var(--space-2xl);
+  }
+
+  .sintese-item {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2xs);
+  }
+
+  .sintese-valor {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: var(--fs-h1);
+    line-height: 1;
+    color: var(--fg-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sintese-rotulo {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    letter-spacing: var(--tracking-machine);
+    text-transform: uppercase;
+    color: var(--fg-subtle);
+  }
+
+  /* O zero de Go domina a composição — a única das três colunas na
+     escala do próprio título da abertura, com o brilho do canal. */
+  .sintese-item--go .sintese-valor {
+    font-size: var(--fs-display);
+    color: var(--accent);
+    text-shadow: var(--glow-flow);
+  }
+
+  .sintese-item--go .sintese-rotulo {
+    color: var(--accent-soft);
+  }
+
+  .sintese-legenda {
+    inline-size: 100%;
+    margin-block-start: var(--space-lg);
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    color: var(--fg-subtle);
+    text-align: center;
+  }
 }

@@ -81,6 +81,18 @@ export function montarCodigoTradicional(palco) {
   montarBlocoComparacao(palco, ["c", "java"]);
 }
 
+// A cena 19 fecha com esses mesmos números, em vez de repeti-los à
+// mão: se o código de exemplo mudar aqui, o fechamento muda junto,
+// sem risco de as duas cenas divergirem.
+export function contagensDeRisco() {
+  return Object.fromEntries(
+    Object.entries(COLUNAS).map(([chave, { codigo, linguagem }]) => [
+      chave,
+      contarRisco(codigo, linguagem),
+    ])
+  );
+}
+
 export function montarComparacao(palco) {
   montarBlocoComparacao(palco, ["c", "java", "go"]);
 }

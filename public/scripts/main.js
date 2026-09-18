@@ -16,6 +16,7 @@ import { montarCodigoTradicional, montarComparacao } from "./viz/codigo.js";
 import { montarCicloVida } from "./viz/ciclo-vida.js";
 import { montarDemonstracao } from "./viz/demonstracao.js";
 import { montarEscalonador } from "./viz/escalonador.js";
+import { montarSintese } from "./viz/sintese.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -40,6 +41,7 @@ const VISUALIZACOES = {
   "ciclo-vida": montarCicloVida,
   demonstracao: montarDemonstracao,
   escalonador: montarEscalonador,
+  sintese: montarSintese,
 };
 
 document.querySelectorAll("[data-viz]").forEach((palco) => {
