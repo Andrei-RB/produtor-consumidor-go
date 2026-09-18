@@ -44,11 +44,17 @@ const COLUNAS = {
   go: { rotulo: "Go · canal", codigo: CODIGO_GO, linguagem: "go" },
 };
 
+/* index.html mostra as cenas 09 e 18 na mesma página ao mesmo tempo —
+   as duas chamam montarBlocoComparacao com as mesmas chaves de idioma,
+   então o id do rótulo não pode depender só da chave (colidiria). */
+let proximoIdColuna = 0;
+
 function montarColuna({ rotulo, codigo, linguagem }) {
   const n = contarRisco(codigo, linguagem);
+  const idRotulo = `comparacao-rotulo-${linguagem}-${proximoIdColuna++}`;
   return `
-    <div class="comparacao-coluna" tabindex="0">
-      <span class="comparacao-rotulo">${rotulo}</span>
+    <div class="comparacao-coluna" tabindex="0" role="group" aria-labelledby="${idRotulo}">
+      <span class="comparacao-rotulo" id="${idRotulo}">${rotulo}</span>
       <pre class="codigo">${realcarBloco(codigo, linguagem)}</pre>
       <p class="comparacao-custo" ${n === 0 ? "data-zero" : ""}>
         <b>${n}</b> ${n === 1 ? "chamada de sincronização manual" : "chamadas de sincronização manual"}
