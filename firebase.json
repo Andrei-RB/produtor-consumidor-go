@@ -6,7 +6,9 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**",
-      "**/*-source.*"
+      "**/*-source.*",
+      "styleguide.html",
+      "storyboard.html"
     ],
     "cleanUrls": true,
     "trailingSlash": false,
