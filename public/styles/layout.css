@@ -334,21 +334,31 @@
   }
 
   .lema {
-    max-inline-size: 30ch;
+    max-inline-size: min(90%, 62rem);
     margin: 0;
     text-align: center;
   }
 
+  /* Duas linhas com papéis diferentes, não um bloco de texto corrido:
+     a premissa que se rejeita, depois — sozinha, em destaque — a tese.
+     display: flex faz cada filho ocupar sua própria linha independente
+     da largura, então a quebra nunca cai no meio de uma cláusula. */
   .lema-texto {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
     font-family: var(--font-display);
     font-size: var(--fs-h1);
     font-weight: 300;
     line-height: 1.12;
     letter-spacing: var(--tracking-display);
     color: var(--fg-strong);
+    margin: 0;
+  }
+
+  .lema-texto > * {
     text-wrap: balance;
     overflow-wrap: normal;
-    margin: 0;
   }
 
   .lema-texto em {
