@@ -5,6 +5,7 @@ import { iniciarProgresso, iniciarIndicadorDeAto } from "./motion/scroll.js";
 import { iniciarAbertura } from "./motion/hero.js";
 import { iniciarCenas } from "./motion/cenas.js";
 import { iniciarCursor } from "./motion/cursor.js";
+import { iniciarCortina } from "./motion/cortina.js";
 import { montarBuffer } from "./viz/buffer.js";
 import { montarCorrida } from "./viz/corrida.js";
 import { montarImpasse } from "./viz/impasse.js";
@@ -22,6 +23,9 @@ gsap.registerPlugin(ScrollTrigger);
 // janela sem o visitante ter redimensionado nada — sem isto, esse
 // "resize" falso recalcula todos os gatilhos no meio da rolagem.
 ScrollTrigger.config({ ignoreMobileResize: true });
+
+// Primeiro de tudo: cobre a tela antes que qualquer outra coisa pinte.
+iniciarCortina();
 
 const VISUALIZACOES = {
   buffer: montarBuffer,
