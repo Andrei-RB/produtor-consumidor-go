@@ -8,6 +8,8 @@
    ordem que ninguém controla — e que na máquina real é decidida pelo
    escalonador, não pelo programador. */
 
+import { animarNumero } from "../lib/animar-numero.js";
+
 const INSTRUCOES = [
   { rotulo: "reg ← contador", curto: "ler" },
   { rotulo: "reg ← reg + 1", curto: "somar" },
@@ -144,7 +146,12 @@ function coluna(i) {
 }
 
 function desenhar(s, refs) {
-  refs.contador.textContent = s.contador;
+  // A memória compartilhada é o único número que sobe com peso: os
+  // registradores das threads trocam junto com o passo (sem drama
+  // próprio), mas ver o contador subir — ou, na ordem errada, ficar
+  // parado onde uma escrita deveria ter mudado ele — é o próprio
+  // argumento da cena.
+  animarNumero(refs.contador, s.contador);
 
   s.threads.forEach((t, i) => {
     const c = refs.colunas[i];
