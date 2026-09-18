@@ -4,6 +4,7 @@
 import { iniciarProgresso, iniciarIndicadorDeAto } from "./motion/scroll.js";
 import { iniciarAbertura } from "./motion/hero.js";
 import { iniciarCenas } from "./motion/cenas.js";
+import { iniciarCursor } from "./motion/cursor.js";
 import { montarBuffer } from "./viz/buffer.js";
 import { montarCorrida } from "./viz/corrida.js";
 import { montarImpasse } from "./viz/impasse.js";
@@ -45,6 +46,7 @@ iniciarAbertura();
 iniciarCenas();
 iniciarProgresso();
 iniciarIndicadorDeAto();
+iniciarCursor();
 
 /* Reagir a fontes que terminam de carregar depois do primeiro cálculo:
    a troca de métrica muda a altura das cenas e invalida os gatilhos. */
