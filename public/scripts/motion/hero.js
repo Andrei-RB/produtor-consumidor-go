@@ -75,6 +75,9 @@ export function iniciarAbertura() {
       end: "+=130%",
       pin: true,
       scrub: 0.5,
+      // Sem isto, um scroll rápido (comum no toque, num flick) pode
+      // mostrar um salto de um frame antes do pin prender.
+      anticipatePin: 1,
       onUpdate: (self) => {
         controladoPelaRolagem = self.progress > LIMIAR;
 

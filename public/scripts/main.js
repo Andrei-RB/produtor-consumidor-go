@@ -17,6 +17,11 @@ import { montarEscalonador } from "./viz/escalonador.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
+// No celular, mostrar/esconder a barra de endereço muda a altura da
+// janela sem o visitante ter redimensionado nada — sem isto, esse
+// "resize" falso recalcula todos os gatilhos no meio da rolagem.
+ScrollTrigger.config({ ignoreMobileResize: true });
+
 const VISUALIZACOES = {
   buffer: montarBuffer,
   corrida: montarCorrida,
