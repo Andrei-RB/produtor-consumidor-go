@@ -23,14 +23,28 @@
 
 import { realcarBloco } from "../lib/realce.js";
 
-const GO_PLAYGROUND_URL = "https://go.dev/play/p/NlOcxvBiCv4";
+const GO_PLAYGROUND_URL = "https://go.dev/play/p/U9MCwuryCb5";
 
 const FONTES = {
   go: {
     nome: "Go",
     arquivo: "main.go",
-    observar: "Altere capacidadeBuffer, numConsumidores ou os tempos em time.Sleep e rode de novo.",
-    codigo: `package main
+    observar: "Altere capacidade, consumidores ou os tempos (tempoLento, tempoRapido, tempoConsumo) e rode de novo.",
+    codigo: `// Problema Produtor-Consumidor em Go (goroutines + canal com buffer)
+// Seminário C1 - Paradigmas de Linguagens de Programação
+// Executa em: https://go.dev/play
+//
+// O produtor gera itens e os envia para um canal de capacidade finita.
+// Dois consumidores retiram os itens desse mesmo canal e os processam.
+// O canal já resolve as duas condições críticas do problema, sem semáforos
+// nem mutex: enviar para um canal cheio espera por espaço, e receber de um
+// canal vazio espera por item.
+//
+// A execução tem duas fases, para que as duas condições apareçam:
+//   FASE 1 - produção lenta: o canal vive vazio e os consumidores esperam.
+//   FASE 2 - rajada de produção: o canal enche e o produtor espera.
+
+package main
 
 import (
 	"fmt"
@@ -39,125 +53,359 @@ import (
 )
 
 const (
-	capacidadeBuffer  = 3
-	numConsumidores   = 2
-	itensParaProduzir = 8
-	tempoProducao     = 150 * time.Millisecond
-	tempoConsumo      = 300 * time.Millisecond
+	capacidade   = 3  // tamanho do buffer do canal (o N do problema)
+	totalItens   = 10 // quantos itens o produtor vai gerar
+	itensLentos  = 4  // os primeiros itens saem devagar (fase 1)
+	consumidores = 2  // quantas goroutines consumidoras
+
+	tempoLento   = 350 * time.Millisecond // fase 1: mais lento que o consumo
+	tempoRapido  = 20 * time.Millisecond  // fase 2: bem mais rápido que o consumo
+	tempoConsumo = 300 * time.Millisecond // tempo para processar um item
 )
 
-func produtor(canal chan<- int, wg *sync.WaitGroup) {
-	defer wg.Done()
-	for i := 1; i <= itensParaProduzir; i++ {
-		time.Sleep(tempoProducao)
-		canal <- i
-		fmt.Printf("produtor enviou %d\\n", i)
-	}
-	close(canal)
+var inicio = time.Now()
+
+// registrar imprime uma linha do log: quando, quem, como está o canal e o que houve.
+func registrar(quem string, ocupados int, mensagem string) {
+	fmt.Printf("[%5.2fs] %-12s | canal %d/%d | %s\\n",
+		time.Since(inicio).Seconds(), quem, ocupados, capacidade, mensagem)
 }
 
-func consumidor(id int, canal <-chan int, wg *sync.WaitGroup) {
-	defer wg.Done()
-	for item := range canal {
-		time.Sleep(tempoConsumo)
-		fmt.Printf("consumidor %d processou %d\\n", id, item)
+// tempoDeProducao devolve a pausa antes de gerar cada item:
+// os primeiros saem devagar e os últimos saem em rajada.
+func tempoDeProducao(item int) time.Duration {
+	if item <= itensLentos {
+		return tempoLento
 	}
+	return tempoRapido
+}
+
+// produtor gera os itens e os envia para o canal.
+// chan<- int significa que, aqui dentro, o canal só aceita envio.
+func produtor(canal chan<- int) {
+	for item := 1; item <= totalItens; item++ {
+		if item == itensLentos+1 {
+			fmt.Println("\\n--- FASE 2: rajada de produção, o canal vai encher ---")
+		}
+		time.Sleep(tempoDeProducao(item)) // simula o tempo de gerar o item
+
+		// Esta verificação é só para o log, avisando que o envio vai esperar.
+		// Quem realmente faz a espera é o canal, na linha seguinte.
+		if len(canal) == capacidade {
+			registrar("Produtor", len(canal), "canal cheio, esperando espaço")
+		}
+
+		canal <- item // espera aqui enquanto não houver espaço livre
+		registrar("Produtor", len(canal), fmt.Sprintf("produziu o item %d", item))
+	}
+
+	close(canal) // avisa os consumidores que não virão mais itens
+	registrar("Produtor", len(canal), "terminou e fechou o canal")
+}
+
+// consumidor retira itens do canal até ele ser fechado e esvaziado.
+// <-chan int significa que, aqui dentro, o canal só aceita recebimento.
+func consumidor(id int, canal <-chan int, grupo *sync.WaitGroup) {
+	defer grupo.Done() // avisa o WaitGroup quando esta goroutine terminar
+
+	nome := fmt.Sprintf("Consumidor %d", id)
+
+	// range recebe do canal até ele ser fechado e esvaziado, e então
+	// encerra sozinho. Não é preciso testar nenhuma marcação.
+	for item := range canal {
+		registrar(nome, len(canal), fmt.Sprintf("consumiu o item %d", item))
+		time.Sleep(tempoConsumo) // simula o processamento do item
+
+		if len(canal) == 0 {
+			registrar(nome, 0, "canal vazio, esperando item")
+		}
+	}
+
+	registrar(nome, 0, "canal fechado e vazio, encerrou")
 }
 
 func main() {
-	canal := make(chan int, capacidadeBuffer)
+	fmt.Printf("Produtor-consumidor em Go | canal de %d | %d itens | consumidores: %d\\n\\n",
+		capacidade, totalItens, consumidores)
+	fmt.Println("--- FASE 1: produção lenta, os consumidores vão esperar ---")
 
-	var wgProdutor sync.WaitGroup
-	var wgConsumidores sync.WaitGroup
+	canal := make(chan int, capacidade) // o buffer limitado do problema
+	var grupo sync.WaitGroup
 
-	wgProdutor.Add(1)
-	go produtor(canal, &wgProdutor)
+	go produtor(canal) // o produtor fecha o canal ao terminar
 
-	for i := 1; i <= numConsumidores; i++ {
-		wgConsumidores.Add(1)
-		go consumidor(i, canal, &wgConsumidores)
+	for id := 1; id <= consumidores; id++ {
+		grupo.Add(1) // registra uma goroutine a ser esperada
+		go consumidor(id, canal, &grupo)
 	}
 
-	wgProdutor.Wait()
-	wgConsumidores.Wait()
-	fmt.Println("concluido")
-}`,
+	grupo.Wait() // a main espera os consumidores encerrarem
+
+	fmt.Printf("\\nOs %d itens foram produzidos e consumidos.\\n", totalItens)
+}
+
+// Cenários para a demonstração ao vivo:
+//   1. capacidade = 1    -> na fase 2 o produtor espera a cada item.
+//   2. capacidade = 10   -> o canal nunca enche e o produtor nunca espera.
+//   3. consumidores = 1  -> na rajada o canal fica cheio por mais tempo e o
+//      produtor espera várias vezes.
+//   4. comentar close(canal) e o registrar logo abaixo dele (sozinho, o
+//      registrar anunciaria um fechamento que não aconteceu) -> o laço range
+//      nunca termina e o runtime aborta com
+//      "fatal error: all goroutines are asleep - deadlock!"`,
   },
 
   c: {
     nome: "C",
     arquivo: "main.c",
-    observar: "Altere CAPACIDADE, NUM_CONSUMIDORES ou os tempos em usleep e carregue o editor de novo.",
-    codigo: `#include <pthread.h>
+    observar: "Altere CAPACIDADE, CONSUMIDORES ou os tempos (TEMPO_LENTO_MS, TEMPO_RAPIDO_MS, TEMPO_CONSUMO_MS) e carregue o editor de novo.",
+    codigo: `/* Problema Produtor-Consumidor em C (threads + mutex + variáveis de condição)
+ * Seminário C1 - Paradigmas de Linguagens de Programação
+ * Versão de comparação com a solução em Go.
+ *
+ * Faz exatamente o mesmo que o programa em Go, mas aqui o buffer é uma
+ * estrutura na memória compartilhada: o programador precisa criar a trava,
+ * as duas variáveis de condição e coordenar cada acesso na mão.
+ *
+ * Compilar: gcc produtor_consumidor.c -o produtor_consumidor -pthread
+ * Executar: ./produtor_consumidor
+ */
+
 #include <stdio.h>
+#include <stdlib.h>
+#include <locale.h>
+#include <pthread.h>
 #include <unistd.h>
+#include <time.h>
 
-#define CAPACIDADE 3
-#define NUM_CONSUMIDORES 2
-#define ITENS_PARA_PRODUZIR 8
+#define CAPACIDADE 3     /* tamanho do buffer (o N do problema) */
+#define TOTAL_ITENS 10   /* quantos itens o produtor vai gerar */
+#define ITENS_LENTOS 4   /* os primeiros itens saem devagar (fase 1) */
+#define CONSUMIDORES 2   /* quantas threads consumidoras */
 
-int buffer[CAPACIDADE];
-int inicio = 0, fim = 0, ocupacao = 0;
-int encerrado = 0;
+#define TEMPO_LENTO_MS 350    /* fase 1: mais lento que o consumo */
+#define TEMPO_RAPIDO_MS 20    /* fase 2: bem mais rápido que o consumo */
+#define TEMPO_CONSUMO_MS 300  /* tempo para processar um item */
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t cond_vazio = PTHREAD_COND_INITIALIZER;
-pthread_cond_t cond_cheio = PTHREAD_COND_INITIALIZER;
+typedef struct {
+    int *itens;                 /* vetor alocado dinamicamente com malloc */
+    int inicio;                 /* posição de onde sai o próximo item */
+    int fim;                    /* posição onde entra o próximo item */
+    int tam;                    /* quantos itens estão no buffer agora */
+    int fechado;                /* 1 = o produtor terminou (o close do Go) */
+    pthread_mutex_t trava;      /* protege todos os campos acima */
+    pthread_cond_t tem_espaco;  /* o produtor espera aqui quando está cheio */
+    pthread_cond_t tem_item;    /* o consumidor espera aqui quando está vazio */
+} Buffer;
 
-void *produtor(void *arg) {
-    for (int i = 1; i <= ITENS_PARA_PRODUZIR; i++) {
-        usleep(150000);
-        pthread_mutex_lock(&mutex);
-        while (ocupacao == CAPACIDADE)
-            pthread_cond_wait(&cond_cheio, &mutex);
-        buffer[fim] = i;
-        fim = (fim + 1) % CAPACIDADE;
-        ocupacao++;
-        printf("produtor enviou %d\\n", i);
-        pthread_cond_signal(&cond_vazio);
-        pthread_mutex_unlock(&mutex);
-    }
-    pthread_mutex_lock(&mutex);
-    encerrado = 1;
-    pthread_cond_broadcast(&cond_vazio);
-    pthread_mutex_unlock(&mutex);
-    return NULL;
+typedef struct {
+    int id;
+    Buffer *buffer;
+} DadosConsumidor;              /* argumentos de cada thread consumidora */
+
+static struct timespec inicio_programa;
+
+/* decorrido devolve quantos segundos se passaram desde o início do programa. */
+double decorrido(void) {
+    struct timespec agora;
+
+    clock_gettime(CLOCK_MONOTONIC, &agora);
+    return (agora.tv_sec - inicio_programa.tv_sec) +
+           (agora.tv_nsec - inicio_programa.tv_nsec) / 1000000000.0;
 }
 
-void *consumidor(void *arg) {
-    long id = (long)arg;
-    while (1) {
-        pthread_mutex_lock(&mutex);
-        while (ocupacao == 0 && !encerrado)
-            pthread_cond_wait(&cond_vazio, &mutex);
-        if (ocupacao == 0 && encerrado) {
-            pthread_mutex_unlock(&mutex);
-            break;
+void dormir_ms(int milissegundos) {
+    usleep(milissegundos * 1000);
+}
+
+/* registrar imprime uma linha do log: quando, quem, como está o buffer e o que houve. */
+void registrar(const char *quem, int ocupados, const char *mensagem) {
+    printf("[%5.2fs] %-12s | buffer %d/%d | %s\\n",
+           decorrido(), quem, ocupados, CAPACIDADE, mensagem);
+    fflush(stdout);
+}
+
+/* criar_buffer aloca o buffer e o vetor de itens no heap, com malloc.
+ * Devolve NULL quando falta memória, para a main poder avisar o usuário. */
+Buffer *criar_buffer(void) {
+    Buffer *buffer = malloc(sizeof(Buffer));
+
+    if (buffer == NULL) {
+        return NULL;
+    }
+
+    buffer->itens = malloc(CAPACIDADE * sizeof(int));
+    if (buffer->itens == NULL) {
+        free(buffer);   /* libera o que já tinha sido alocado antes de desistir */
+        return NULL;
+    }
+
+    buffer->inicio = 0;
+    buffer->fim = 0;
+    buffer->tam = 0;
+    buffer->fechado = 0;
+    pthread_mutex_init(&buffer->trava, NULL);
+    pthread_cond_init(&buffer->tem_espaco, NULL);
+    pthread_cond_init(&buffer->tem_item, NULL);
+    return buffer;
+}
+
+/* destruir_buffer libera a trava, as variáveis de condição e a memória.
+ * Em Go e em Java não existe passo equivalente: o coletor de lixo cuida disso. */
+void destruir_buffer(Buffer *buffer) {
+    pthread_mutex_destroy(&buffer->trava);
+    pthread_cond_destroy(&buffer->tem_espaco);
+    pthread_cond_destroy(&buffer->tem_item);
+
+    free(buffer->itens);   /* primeiro o vetor que está dentro da struct... */
+    free(buffer);          /* ...e só depois a própria struct */
+}
+
+/* inserir coloca um item no buffer, esperando se ele estiver cheio. */
+void inserir(Buffer *buffer, int item) {
+    char mensagem[40];
+
+    pthread_mutex_lock(&buffer->trava);
+
+    if (buffer->tam == CAPACIDADE) {
+        registrar("Produtor", buffer->tam, "buffer cheio, esperando espaço");
+    }
+    /* while, e não if: ao acordar, a condição precisa ser testada de novo,
+     * porque outra thread pode ter ocupado a vaga antes desta. */
+    while (buffer->tam == CAPACIDADE) {
+        pthread_cond_wait(&buffer->tem_espaco, &buffer->trava);
+    }
+
+    buffer->itens[buffer->fim] = item;
+    buffer->fim = (buffer->fim + 1) % CAPACIDADE;
+    buffer->tam++;
+
+    sprintf(mensagem, "produziu o item %d", item);
+    registrar("Produtor", buffer->tam, mensagem);
+
+    pthread_cond_signal(&buffer->tem_item);   /* avisa um consumidor que chegou item */
+    pthread_mutex_unlock(&buffer->trava);
+}
+
+/* remover retira um item do buffer, esperando se ele estiver vazio.
+ * Devolve 1 quando entregou um item e 0 quando o buffer foi fechado e esvaziado
+ * (o mesmo ponto em que o laço range do Go encerra sozinho). */
+int remover(Buffer *buffer, const char *quem, int *item) {
+    char mensagem[40];
+
+    pthread_mutex_lock(&buffer->trava);
+
+    if (buffer->tam == 0 && !buffer->fechado) {
+        registrar(quem, buffer->tam, "buffer vazio, esperando item");
+    }
+    while (buffer->tam == 0 && !buffer->fechado) {
+        pthread_cond_wait(&buffer->tem_item, &buffer->trava);
+    }
+
+    if (buffer->tam == 0 && buffer->fechado) {
+        pthread_mutex_unlock(&buffer->trava);
+        return 0;
+    }
+
+    *item = buffer->itens[buffer->inicio];
+    buffer->inicio = (buffer->inicio + 1) % CAPACIDADE;
+    buffer->tam--;
+
+    sprintf(mensagem, "consumiu o item %d", *item);
+    registrar(quem, buffer->tam, mensagem);
+
+    pthread_cond_signal(&buffer->tem_espaco); /* avisa o produtor que abriu espaço */
+    pthread_mutex_unlock(&buffer->trava);
+    return 1;
+}
+
+/* fechar_buffer marca o fim da produção e acorda todos os consumidores. */
+void fechar_buffer(Buffer *buffer) {
+    pthread_mutex_lock(&buffer->trava);
+
+    buffer->fechado = 1;
+    registrar("Produtor", buffer->tam, "terminou e fechou o buffer");
+    pthread_cond_broadcast(&buffer->tem_item); /* broadcast: todos precisam acordar */
+
+    pthread_mutex_unlock(&buffer->trava);
+}
+
+/* tempo_de_producao devolve a pausa antes de gerar cada item:
+ * os primeiros saem devagar e os últimos saem em rajada. */
+int tempo_de_producao(int item) {
+    if (item <= ITENS_LENTOS) {
+        return TEMPO_LENTO_MS;
+    }
+    return TEMPO_RAPIDO_MS;
+}
+
+void *produtor(void *argumento) {
+    Buffer *buffer = (Buffer *) argumento;
+    int item;
+
+    for (item = 1; item <= TOTAL_ITENS; item++) {
+        if (item == ITENS_LENTOS + 1) {
+            printf("\\n--- FASE 2: rajada de produção, o buffer vai encher ---\\n");
         }
-        int item = buffer[inicio];
-        inicio = (inicio + 1) % CAPACIDADE;
-        ocupacao--;
-        pthread_cond_signal(&cond_cheio);
-        pthread_mutex_unlock(&mutex);
-        usleep(300000);
-        printf("consumidor %ld processou %d\\n", id, item);
+
+        dormir_ms(tempo_de_producao(item));   /* simula o tempo de gerar o item */
+        inserir(buffer, item);
     }
+
+    fechar_buffer(buffer);
     return NULL;
 }
 
-int main() {
-    pthread_t t_produtor;
-    pthread_t t_consumidores[NUM_CONSUMIDORES];
+void *consumidor(void *argumento) {
+    DadosConsumidor *dados = (DadosConsumidor *) argumento;
+    char nome[20];
+    int item;
 
-    pthread_create(&t_produtor, NULL, produtor, NULL);
-    for (long i = 1; i <= NUM_CONSUMIDORES; i++)
-        pthread_create(&t_consumidores[i - 1], NULL, consumidor, (void *)i);
+    sprintf(nome, "Consumidor %d", dados->id);
 
-    pthread_join(t_produtor, NULL);
-    for (int i = 0; i < NUM_CONSUMIDORES; i++)
-        pthread_join(t_consumidores[i], NULL);
+    while (remover(dados->buffer, nome, &item)) {
+        dormir_ms(TEMPO_CONSUMO_MS);   /* simula o processamento do item */
+    }
 
-    printf("concluido\\n");
+    registrar(nome, 0, "buffer fechado e vazio, encerrou");
+    return NULL;
+}
+
+int main(void) {
+    Buffer *buffer;
+    pthread_t thread_produtor;
+    pthread_t threads_consumidores[CONSUMIDORES];
+    DadosConsumidor dados[CONSUMIDORES];
+    int i;
+
+    setlocale(LC_ALL, "Portuguese");
+    clock_gettime(CLOCK_MONOTONIC, &inicio_programa);
+
+    printf("Produtor-consumidor em C | buffer de %d | %d itens | consumidores: %d\\n\\n",
+           CAPACIDADE, TOTAL_ITENS, CONSUMIDORES);
+    printf("--- FASE 1: produção lenta, os consumidores vão esperar ---\\n");
+
+    buffer = criar_buffer();
+    if (buffer == NULL) {
+        printf("Erro na alocação de memória!\\n");
+        return 1;
+    }
+
+    pthread_create(&thread_produtor, NULL, produtor, buffer);
+    for (i = 0; i < CONSUMIDORES; i++) {
+        dados[i].id = i + 1;
+        dados[i].buffer = buffer;
+        pthread_create(&threads_consumidores[i], NULL, consumidor, &dados[i]);
+    }
+
+    pthread_join(thread_produtor, NULL);
+    for (i = 0; i < CONSUMIDORES; i++) {
+        pthread_join(threads_consumidores[i], NULL);
+    }
+
+    destruir_buffer(buffer);   /* em C a limpeza é responsabilidade do programador */
+
+    printf("\\nOs %d itens foram produzidos e consumidos.\\n", TOTAL_ITENS);
     return 0;
 }`,
   },
@@ -165,76 +413,193 @@ int main() {
   java: {
     nome: "Java",
     arquivo: "Main.java",
-    observar: "Altere CAPACIDADE, NUM_CONSUMIDORES ou os tempos em Thread.sleep e carregue o editor de novo.",
-    codigo: `import java.util.LinkedList;
-import java.util.Queue;
+    observar: "Altere CAPACIDADE, CONSUMIDORES ou os tempos (TEMPO_LENTO_MS, TEMPO_RAPIDO_MS, TEMPO_CONSUMO_MS) e carregue o editor de novo.",
+    codigo: `/* Problema Produtor-Consumidor em Java (threads + monitor: synchronized / wait / notifyAll)
+ * Seminário C1 - Paradigmas de Linguagens de Programação
+ * Versão de comparação com a solução em Go.
+ *
+ * Faz exatamente o mesmo que o programa em Go. Aqui o buffer é um objeto e a
+ * trava fica embutida nele (monitor): synchronized garante uma thread por vez,
+ * mas a coordenação de quem espera e quem acorda continua sendo escrita à mão.
+ *
+ * Compilar: javac Main.java
+ * Executar: java Main
+ */
+
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 
 public class Main {
-    static final int CAPACIDADE = 3;
-    static final int NUM_CONSUMIDORES = 2;
-    static final int ITENS_PARA_PRODUZIR = 8;
 
-    static final Queue<Integer> buffer = new LinkedList<>();
-    static boolean encerrado = false;
+    static final int CAPACIDADE = 3;    // tamanho do buffer (o N do problema)
+    static final int TOTAL_ITENS = 10;  // quantos itens o produtor vai gerar
+    static final int ITENS_LENTOS = 4;  // os primeiros itens saem devagar (fase 1)
+    static final int CONSUMIDORES = 2;  // quantas threads consumidoras
+
+    static final int TEMPO_LENTO_MS = 350;    // fase 1: mais lento que o consumo
+    static final int TEMPO_RAPIDO_MS = 20;    // fase 2: bem mais rápido que o consumo
+    static final int TEMPO_CONSUMO_MS = 300;  // tempo para processar um item
+
+    /* Força a saída em UTF-8: sem isto, dependendo do sistema ou do compilador
+     * online, as letras acentuadas apareceriam como "?". */
+    static final PrintStream saida =
+            new PrintStream(System.out, true, StandardCharsets.UTF_8);
+
+    static long inicioPrograma;
+
+    /* registrar imprime uma linha do log: quando, quem, como está o buffer e o que houve. */
+    static synchronized void registrar(String quem, int ocupados, String mensagem) {
+        double decorrido = (System.nanoTime() - inicioPrograma) / 1000000000.0;
+
+        saida.printf("[%5.2fs] %-12s | buffer %d/%d | %s%n",
+                decorrido, quem, ocupados, CAPACIDADE, mensagem);
+    }
+
+    static void dormirMs(int milissegundos) {
+        try {
+            Thread.sleep(milissegundos);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    /* tempoDeProducao devolve a pausa antes de gerar cada item:
+     * os primeiros saem devagar e os últimos saem em rajada. */
+    static int tempoDeProducao(int item) {
+        if (item <= ITENS_LENTOS) {
+            return TEMPO_LENTO_MS;
+        }
+        return TEMPO_RAPIDO_MS;
+    }
+
+    /* Buffer é o monitor: todo acesso ao estado passa por métodos synchronized. */
+    static class Buffer {
+        private final int[] itens = new int[CAPACIDADE];
+        private int inicio = 0;   // posição de onde sai o próximo item
+        private int fim = 0;      // posição onde entra o próximo item
+        private int tam = 0;      // quantos itens estão no buffer agora
+        private boolean fechado = false;   // o close do canal em Go
+
+        public synchronized void inserir(int item) throws InterruptedException {
+            if (tam == CAPACIDADE) {
+                registrar("Produtor", tam, "buffer cheio, esperando espaço");
+            }
+            // while, e não if: ao acordar, a condição precisa ser testada de novo.
+            while (tam == CAPACIDADE) {
+                wait();
+            }
+
+            itens[fim] = item;
+            fim = (fim + 1) % CAPACIDADE;
+            tam++;
+            registrar("Produtor", tam, "produziu o item " + item);
+
+            notifyAll();   // acorda quem esperava por item
+        }
+
+        /* remover devolve o próximo item, ou null quando o buffer foi fechado e
+         * esvaziado - o mesmo ponto em que o laço range do Go encerra sozinho. */
+        public synchronized Integer remover(String quem) throws InterruptedException {
+            if (tam == 0 && !fechado) {
+                registrar(quem, tam, "buffer vazio, esperando item");
+            }
+            while (tam == 0 && !fechado) {
+                wait();
+            }
+            if (tam == 0 && fechado) {
+                return null;
+            }
+
+            int item = itens[inicio];
+            inicio = (inicio + 1) % CAPACIDADE;
+            tam--;
+            registrar(quem, tam, "consumiu o item " + item);
+
+            notifyAll();   // acorda quem esperava por espaço
+            return item;
+        }
+
+        public synchronized void fechar() {
+            fechado = true;
+            registrar("Produtor", tam, "terminou e fechou o buffer");
+            notifyAll();   // todos os consumidores precisam acordar para encerrar
+        }
+    }
+
+    static class Produtor implements Runnable {
+        private final Buffer buffer;
+
+        public Produtor(Buffer buffer) {
+            this.buffer = buffer;
+        }
+
+        @Override
+        public void run() {
+            try {
+                for (int item = 1; item <= TOTAL_ITENS; item++) {
+                    if (item == ITENS_LENTOS + 1) {
+                        saida.println("\\n--- FASE 2: rajada de produção, o buffer vai encher ---");
+                    }
+
+                    dormirMs(tempoDeProducao(item));   // simula o tempo de gerar o item
+                    buffer.inserir(item);
+                }
+                buffer.fechar();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    static class Consumidor implements Runnable {
+        private final int id;
+        private final Buffer buffer;
+
+        public Consumidor(int id, Buffer buffer) {
+            this.id = id;
+            this.buffer = buffer;
+        }
+
+        @Override
+        public void run() {
+            String nome = "Consumidor " + id;
+
+            try {
+                while (buffer.remover(nome) != null) {
+                    dormirMs(TEMPO_CONSUMO_MS);   // simula o processamento do item
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+
+            registrar(nome, 0, "buffer fechado e vazio, encerrou");
+        }
+    }
 
     public static void main(String[] args) throws InterruptedException {
-        Thread produtor = new Thread(Main::produzir);
-        Thread[] consumidores = new Thread[NUM_CONSUMIDORES];
+        inicioPrograma = System.nanoTime();
 
-        produtor.start();
-        for (int i = 0; i < NUM_CONSUMIDORES; i++) {
-            int id = i + 1;
-            consumidores[i] = new Thread(() -> consumir(id));
-            consumidores[i].start();
+        saida.printf("Produtor-consumidor em Java | buffer de %d | %d itens | consumidores: %d%n%n",
+                CAPACIDADE, TOTAL_ITENS, CONSUMIDORES);
+        saida.println("--- FASE 1: produção lenta, os consumidores vão esperar ---");
+
+        Buffer buffer = new Buffer();
+        Thread threadProdutor = new Thread(new Produtor(buffer));
+        Thread[] threadsConsumidores = new Thread[CONSUMIDORES];
+
+        threadProdutor.start();
+        for (int i = 0; i < CONSUMIDORES; i++) {
+            threadsConsumidores[i] = new Thread(new Consumidor(i + 1, buffer));
+            threadsConsumidores[i].start();
         }
 
-        produtor.join();
-        for (Thread c : consumidores) c.join();
-        System.out.println("concluido");
-    }
-
-    static void produzir() {
-        try {
-            for (int i = 1; i <= ITENS_PARA_PRODUZIR; i++) {
-                Thread.sleep(150);
-                synchronized (buffer) {
-                    while (buffer.size() == CAPACIDADE) {
-                        buffer.wait();
-                    }
-                    buffer.add(i);
-                    System.out.println("produtor enviou " + i);
-                    buffer.notifyAll();
-                }
-            }
-            synchronized (buffer) {
-                encerrado = true;
-                buffer.notifyAll();
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+        threadProdutor.join();
+        for (int i = 0; i < CONSUMIDORES; i++) {
+            threadsConsumidores[i].join();
         }
-    }
+        // Não há nada a liberar: o coletor de lixo cuida do buffer e dos objetos.
 
-    static void consumir(int id) {
-        try {
-            while (true) {
-                int item;
-                synchronized (buffer) {
-                    while (buffer.isEmpty() && !encerrado) {
-                        buffer.wait();
-                    }
-                    if (buffer.isEmpty() && encerrado) {
-                        return;
-                    }
-                    item = buffer.poll();
-                    buffer.notifyAll();
-                }
-                Thread.sleep(300);
-                System.out.println("consumidor " + id + " processou " + item);
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        saida.printf("%nOs %d itens foram produzidos e consumidos.%n", TOTAL_ITENS);
     }
 }`,
   },
